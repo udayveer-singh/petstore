@@ -57,6 +57,27 @@ pipeline {
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
+        stage('Docker Image Build'){
+			steps{
+				script{
+					sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID .'
+					sh 'docker image tag $JOB_NAME:v1.$BUILD_ID udayveersingh/$JOB_NAME:v1.$BUILD_ID'
+					sh 'docker image tag $JOB_NAME:v1.$BUILD_ID udayveersingh/$JOB_NAME:latest'
+				}
+			}
+		}
+
+        stage('push image to the dockerhub'){
+			steps{
+				script{
+					withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
+                                            sh 'docker login -u udayveersingh -p${dockerhub}'
+						sh'docker image push udayveersingh/$JOB_NAME:v1.$BUILD_ID'
+						sh'docker image push udayveersingh/$JOB_NAME:latest'
+                                      }
+				}
+			}
+		}
         }
     }
 
